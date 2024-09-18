@@ -1,0 +1,252 @@
+﻿@{
+    ViewData["Title"] = "Catalogo de Productos";
+}
+@model PruebaASP.Models.ViewModel
+
+<div class="container mt-3">
+    <h3>Catálogo de Productos</h3>
+    <form id="productForm" asp-action="SaveProduct" method="post">
+        <input type="hidden" id="actionType" name="actionType" value="" />
+        <input type="hidden" id="SelectedProductIds" name="SelectedProductIds" value="" />
+
+        <div class="form-group">
+            <label for="NoProducto">No Producto</label>
+            <input type="text" class="form-control" id="NoProducto" name="NoProducto" value=@Model.NoProducto readonly />
+            <input type="hidden" id="NoProductoHidden" name="NoProducto" value="123" />
+            <span class="text-danger field-validation-valid" data-valmsg-for="NoProducto" data-valmsg-replace="true"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="Categoria">Categoría del Producto</label>
+            <select class="form-control" id="Categoria" name="Categoria" disabled>
+                <option value="">Seleccione una categoría</option>
+                @foreach (var category in Model.Categorias)
+                {
+                    <option value="@category.NoCategoria">@category.NombreCategoria</option>
+                }
+            </select>
+            <span class="text-danger field-validation-valid" data-valmsg-for="Categoria" data-valmsg-replace="true"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="NombreProducto">Nombre del Producto</label>
+            <input type="text" class="form-control" id="NombreProducto" name="NombreProducto" disabled
+                   data-val="true" data-val-required="El nombre del producto es obligatorio." />
+            <span class="text-danger field-validation-valid" data-valmsg-for="NombreProducto" data-valmsg-replace="true"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="Descripcion">Descripción</label>
+            <textarea class="form-control" id="Descripcion" name="Descripcion" disabled
+                      data-val="true" data-val-required="La descripción es obligatoria."></textarea>
+            <span class="text-danger field-validation-valid" data-valmsg-for="Descripcion" data-valmsg-replace="true"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="Stock">Stock</label>
+            <input type="number" class="form-control" id="Stock" name="Stock" disabled
+                   data-val="true" data-val-required="El stock es obligatorio." />
+            <span class="text-danger field-validation-valid" data-valmsg-for="Stock" data-valmsg-replace="true"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="PrecioVenta">Precio de Venta</label>
+            <input type="number" class="form-control" id="PrecioVenta" name="PrecioVenta" disabled
+                   data-val="true" data-val-required="El precio de venta es obligatorio." />
+            <span class="text-danger field-validation-valid" data-valmsg-for="PrecioVenta" data-valmsg-replace="true"></span>
+        </div>
+
+        <div class="btn-group mt-3" role="group" aria-label="Basic example">
+            <button type="button" id="newButton" class="btn btn-primary">Nuevo</button>
+            <button type="button" id="saveButton" class="btn btn-primary" disabled>Guardar</button>
+            <button type="button" id="modifyButton" class="btn btn-primary" disabled>Modificar</button>
+            <button type="button" id="disableButton" class="btn btn-primary" disabled>Deshabilitar</button>
+            <button type="button" id="cancelButton" class="btn btn-primary">Cancelar</button>
+        </div>
+    </form>
+
+    <h4 class="mt-5">Lista de Productos</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th></th> <!-- Columna para checkboxes -->
+                <th>No Producto</th>
+                <th>Categoría</th>
+                <th>Nombre Producto</th>
+                <th>Descripción</th>
+                <th>Stock</th>
+                <th>Precio de Venta</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model.Productos)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selectedProductIds" value="@product.NoProducto" />
+                    </td>
+                    <td>@product.NoProducto</td>
+                    <td>
+                        @{
+                            var categoria = Model.Categorias
+                            .FirstOrDefault(c => c.NoCategoria == product.NoCategoria);
+                            @categoria.NombreCategoria
+                            ;
+                        }
+                    </td>
+                    <td>@product.NombreProducto</td>
+                    <td>@product.Descripcion</td>
+                    <td>@product.Stock</td>
+                    <td>@product.PrecioVenta</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var newButton = document.getElementById('newButton');
+        var saveButton = document.getElementById('saveButton');
+        var modifyButton = document.getElementById('modifyButton');
+        var disableButton = document.getElementById('disableButton');
+        var cancelButton = document.getElementById('cancelButton');
+
+        var formFields = document.querySelectorAll('#productForm input, #productForm select, #productForm textarea');
+        var checkboxes = document.querySelectorAll('input[name="selectedProductIds"]');
+
+        
+        // Habilitar/deshabilitar campos y botones
+        function updateButtonsState() {
+            var selectedCheckboxes = Array.from(checkboxes).filter(cb => cb.checked);
+            var selectedCount = selectedCheckboxes.length;
+            // El botón "Modificar" solo se habilita si hay exactamente un checkbox seleccionado
+            modifyButton.disabled = !(selectedCount === 1);
+
+            // El botón "Deshabilitar" se habilita si hay al menos un checkbox seleccionado
+            disableButton.disabled = !(selectedCount > 0);
+            newButton.disabled = false;
+            //saveButton.disabled = selectedCheckboxes;
+        }
+
+        // Inicializa el estado de los botones
+        updateButtonsState();
+
+        newButton.addEventListener('click', function () {
+            formFields.forEach(function (field) {
+                if (field.id != 'NoProducto') {
+                    field.disabled = false;
+                }else{
+                    field.disabled = false;
+                    field.ariaReadOnly;
+                }
+                
+            });
+            saveButton.disabled = false;
+            modifyButton.disabled = true;
+            disableButton.disabled = true;
+        });
+
+        saveButton.addEventListener('click', function () {
+            document.getElementById('actionType').value = 'Guardar';
+            document.getElementById('productForm').submit();
+        });
+
+        function loadProductData(product) {
+            $('#NoProducto').val(product.noProducto);
+            $('#NoProductoHidden').val(product.noProducto);  
+            $('#Categoria').val(product.noCategoria);
+            $('#NombreProducto').val(product.nombreProducto);
+            $('#Descripcion').val(product.descripcion);
+            $('#Stock').val(product.stock);
+            $('#PrecioVenta').val(product.precioVenta);
+        }
+
+        // Ejemplo de llamada AJAX para obtener un producto y cargarlo en el formulario
+        function getProductById(id) {
+            $.ajax({
+                url: '/Producto/GetProductById/' + id,
+                type: 'GET',
+                success: function (product) {
+                    loadProductData(product);
+                },
+                error: function () {
+                    alert('Error al obtener el producto.');
+                }
+            });
+        }
+
+        modifyButton.addEventListener('click', function () {
+            var selectedCheckbox = document.querySelector('input[name="selectedProductIds"]:checked');
+            if (selectedCheckbox) {
+                var selectedProductId = selectedCheckbox.value;
+                getProductById(selectedProductId); // Función para cargar los datos en el formulario
+
+                formFields.forEach(function (field) {
+                    field.disabled = false;
+                    if(field.id == 'NoProducto'){
+                        field.disabled = true;
+                    }
+                });
+
+                modifyButton.disabled = true;
+                newButton.disabled = true;
+                disableButton.disabled = true;
+                saveButton.disabled = false;
+                cancelButton.disabled = false;
+            }
+        });
+
+
+        disableButton.addEventListener('click', function (event) {
+            event.preventDefault();  // Evita que el formulario se envíe automáticamente
+
+            var selectedProductIds = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value)
+                .join(',');
+
+            document.getElementById('SelectedProductIds').value = selectedProductIds;
+            document.getElementById('actionType').value = 'Deshabilitar';
+
+            // Log para verificar que los datos se están procesando correctamente
+            console.log("Enviando IDs: ", selectedProductIds);
+            console.log("Acción: ", document.getElementById('actionType').value);
+
+            // Si los valores son correctos, descomentar la siguiente línea para enviar el formulario
+            document.getElementById('productForm').submit();
+        });
+
+
+
+        cancelButton.addEventListener('click', function () {
+            // Revertir los cambios del formulario
+            formFields.forEach(function (field) {
+                field.disabled = true;
+                if (field.tagName === 'SELECT') {
+                    field.selectedIndex = 0; // Restablece la selección a la opción por defecto
+                } else {
+                    field.value = ''; // Limpia los valores
+                }
+            });
+
+            // Restablece el estado de los botones
+            saveButton.disabled = true;
+            modifyButton.disabled = true;
+            disableButton.disabled = true;
+
+            // Deselecciona todos los checkboxes
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = false;
+            });
+
+            // Restablece el campo hidden 'actionType'
+            document.getElementById('actionType').value = '';
+        });
+
+        // Agrega eventos a los checkboxes
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', updateButtonsState);
+        });
+    });
+</script>
